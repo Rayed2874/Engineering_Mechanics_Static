@@ -91,205 +91,6 @@ def compute(P, mass, AO, OB, AB, theta_deg, dist_P):
     F         = simp(numer / denom)
     return {"F": F, "alpha": alpha, "W": W, "cos_a": cos_a}
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  FBD DRAWING
-# ══════════════════════════════════════════════════════════════════════════════
-
-# def draw_fbd(ax, P_f, mass_f, AO_f, OB_f, AB_f, theta_f, dist_P_f, F_f, alpha_f,
-#              sym_labels=None):
-#     import numpy as np
-#     import math
-#     import matplotlib.patches as mpatches
-#     from matplotlib.patches import FancyArrowPatch, Circle, Rectangle
-
-#     ax.clear()
-#     ax.set_aspect("equal")
-#     ax.axis("off")
-#     ax.set_facecolor("white")
-
-#     # =====================================================
-#     # BASIC VALUES
-#     # =====================================================
-#     W = mass_f * 9.81
-#     theta = math.radians(theta_f)
-
-#     # Geometry points
-#     C = np.array([0.0, 0.0])              # hinge
-#     B = np.array([0.0, -OB_f])            # lower mount
-
-#     A = np.array([
-#         AO_f * math.cos(theta),
-#         AO_f * math.sin(theta)
-#     ])
-
-#     Pp = np.array([
-#         dist_P_f * math.cos(theta),
-#         dist_P_f * math.sin(theta)
-#     ])
-
-#     G = A * 0.62
-
-#     # =====================================================
-#     # HELPERS
-#     # =====================================================
-#     def vec_arrow(p1, p2, txt=None, lw=2.4, fs=12):
-#         arr = FancyArrowPatch(
-#             p1, p2,
-#             arrowstyle='Simple,head_length=12,head_width=12,tail_width=2',
-#             color="black",
-#             linewidth=lw
-#         )
-#         ax.add_patch(arr)
-#         if txt:
-#             mid = (np.array(p1) + np.array(p2)) / 2
-#             ax.text(mid[0], mid[1], txt, fontsize=fs, fontweight="bold")
-
-#     def dim_arrow(p1, p2, txt, offset=(0, 0), fs=11):
-#         arr = FancyArrowPatch(
-#             p1, p2,
-#             arrowstyle='<->',
-#             mutation_scale=12,
-#             linewidth=1.2,
-#             linestyle='--',
-#             color="gray"
-#         )
-#         ax.add_patch(arr)
-
-#         mid = (np.array(p1) + np.array(p2)) / 2
-#         ax.text(mid[0] + offset[0], mid[1] + offset[1],
-#                 txt, fontsize=fs, color="black")
-
-#     # =====================================================
-#     # HATCH CURVED BODY
-#     # =====================================================
-#     xs = np.linspace(C[0], Pp[0], 80)
-#     ys = 0.18*np.sin(np.linspace(0, math.pi, 80)) + np.linspace(C[1], Pp[1], 80)
-
-#     ax.plot(xs, ys, lw=16, color="#7f97a8", solid_capstyle="round")
-#     ax.plot(xs, ys, lw=10, color="#b7cad8", solid_capstyle="round")
-#     ax.plot(xs, ys + 0.015, lw=1.2, color="black")
-#     ax.plot(xs, ys - 0.015, lw=1.2, color="black")
-
-#     # actual A point on hatch
-#     idxA = int(len(xs)*AO_f/dist_P_f)
-#     # A = np.array([xs[idxA], ys[idxA]])
-#     idxA = max(0, min(len(xs)-1, idxA))
-#     A = np.array([xs[idxA], ys[idxA]])
-
-#     # =====================================================
-#     # STRUT BODY
-#     # =====================================================
-#     ax.plot([B[0], A[0]], [B[1], A[1]], lw=8, color="#7f97a8")
-#     ax.plot([B[0], A[0]], [B[1], A[1]], lw=4, color="#dce8f0")
-
-#     # piston rod
-#     mid = B + (A-B)*0.55
-#     ax.plot([mid[0], A[0]], [mid[1], A[1]], lw=5, color="#d0d0d0")
-
-#     # =====================================================
-#     # JOINTS
-#     # =====================================================
-#     for pt, r in [(C, 0.018), (B, 0.016), (A, 0.012)]:
-#         ax.add_patch(Circle(pt, r, fc="gray", ec="black", lw=1.5))
-#         ax.add_patch(Circle(pt, r*0.45, fc="black"))
-
-#     # wall bracket
-#     ax.add_patch(Rectangle((-0.03, B[1]-0.05), 0.025, 0.10,
-#                            fc="#b0b0b0", ec="black"))
-
-#     # =====================================================
-#     # LABEL POINTS
-#     # =====================================================
-#     ax.text(C[0]-0.03, C[1]+0.03, "C", fontsize=18)
-#     ax.text(B[0]+0.02, B[1]-0.01, "B", fontsize=18)
-#     ax.text(A[0]+0.02, A[1]+0.02, "A", fontsize=18)
-#     ax.text(G[0]+0.02, G[1], "G", fontsize=18)
-
-#     # =====================================================
-#     # FORCES
-#     # =====================================================
-#     # Applied force P
-#     vec_arrow(Pp + np.array([0, 0.16]), Pp + np.array([0, 0.01]))
-#     ax.text(Pp[0]+0.03, Pp[1]+0.10, r"$P = %.0f\ \mathrm{N}$" % P_f,
-#             fontsize=16, fontweight="bold")
-
-#     # Weight
-#     vec_arrow(G + np.array([0, 0.10]), G + np.array([0, -0.08]))
-#     ax.text(G[0]-0.04, G[1]-0.14,
-#             r"$W = mg \approx %.0f\ \mathrm{N}$" % W,
-#             fontsize=16, fontweight="bold")
-
-#     # Strut force
-#     AB = A-B
-#     ABu = AB / np.linalg.norm(AB)
-
-#     start = B + ABu*0.10
-#     end   = start + ABu*0.18
-
-#     vec_arrow(start, end)
-#     vec_arrow(start + np.array([0.03, 0.02]),
-#               end + np.array([0.03, 0.02]))
-
-#     # ax.text(end[0]+0.02, end[1]+0.02, r"$F_A$", fontsize=18, fontweight="bold")
-#     ax.text(end[0]+0.02, end[1]+0.02, f"F = {abs(F_f):.1f} N")
-#     ax.text(start[0]+0.06, start[1]+0.02, r"$F_A$", fontsize=18, fontweight="bold")
-
-#     # Reactions at hinge
-#     vec_arrow(C + np.array([-0.12, 0]), C + np.array([-0.02, 0]))
-#     ax.text(C[0]-0.16, C[1]-0.02, r"$C_x$", fontsize=18)
-
-#     vec_arrow(C + np.array([0, -0.13]), C + np.array([0, -0.02]))
-#     ax.text(C[0]-0.02, C[1]-0.17, r"$C_y$", fontsize=18)
-
-#     vec_arrow(C + np.array([0, 0.02]), C + np.array([0, 0.13]))
-#     ax.text(C[0]-0.02, C[1]+0.15, r"$C_y$", fontsize=18)
-
-#     # =====================================================
-#     # DIMENSIONS
-#     # =====================================================
-#     # top distance
-#     dim_arrow((C[0], A[1]+0.18), (Pp[0], A[1]+0.18),
-#               f"{dist_P_f*1000:.0f} mm", (0, 0.02))
-
-#     # vertical CG
-#     ax.plot([A[0], A[0]], [A[1], G[1]], ls='--', lw=1.2, color='gray')
-#     # ax.text(A[0]+0.03, (A[1]+G[1])/2, "37.5 mm", fontsize=15)
-#     cg_mm = np.linalg.norm(A - G) * 1000
-#     ax.text(A[0]+0.03, (A[1]+G[1])/2, f"{cg_mm:.1f} mm", fontsize=15)
-
-#     # OB
-#     ax.text(B[0]+0.05, (B[1]+C[1])/2, f"{OB_f*1000:.0f} mm", fontsize=14)
-
-#     # =====================================================
-#     # ANGLES
-#     # =====================================================
-#     arc = mpatches.Arc(C, 0.30, 0.30,
-#                        theta1=0, theta2=theta_f,
-#                        lw=1.5)
-#     ax.add_patch(arc)
-#     ax.text(0.12, 0.03, f"{theta_f:.0f}°", fontsize=14)
-
-#     # =====================================================
-#     # AXES
-#     # =====================================================
-#     vec_arrow((-0.22, -0.30), (-0.22, -0.16))
-#     vec_arrow((-0.22, -0.30), (-0.08, -0.30))
-#     ax.text(-0.23, -0.15, "y", fontsize=18)
-#     ax.text(-0.07, -0.31, "x", fontsize=18)
-
-#     # =====================================================
-#     # TITLE
-#     # =====================================================
-#     ax.set_title("Free Body Diagram: Van Hatch",
-#                  fontsize=32, pad=20)
-
-#     # =====================================================
-#     # VIEW LIMITS
-#     # =====================================================
-#     ax.set_xlim(-0.28, max(Pp[0]+0.20, 0.95))
-#     ax.set_ylim(B[1]-0.18, A[1]+0.35)
-
 def draw_fbd(ax, P_f, mass_f, AO_f, OB_f, AB_f, theta_f, dist_P_f, F_f, alpha_f,
              sym_labels=None):
     import numpy as np
@@ -928,20 +729,26 @@ class App(tk.Tk):
             dist_P_s = sv["dist_P"] * mm
 
             # ── validations ─────────────────────────────────────
-            def vp(expr, name):
+            def vp(expr, name, allow_zero=False):
                 f = try_float(expr)
                 if f is not None:
                     if f < 0:
                         raise ValueError(f"{name} cannot be negative.")
-                    if f == 0:
+                    if not allow_zero and f == 0:
                         raise ValueError(f"{name} cannot be zero.")
 
-            vp(sv["P"], "Applied force P")
+            vp(sv["P"], "Applied force P", allow_zero=True)   # P = 0 allowed
             vp(sv["mass"], "Mass")
             vp(AO_s, "AO")
             vp(OB_s, "OB")
             vp(AB_s, "AB")
             vp(dist_P_s, "Distance P")
+
+            theta_f = try_float(sv["theta"])
+            if theta_f is not None and theta_f < 0:
+                raise ValueError("At theta = 0 door is already closed so negative theta doesn't make sense.")
+            if theta_f > 90:
+                raise ValueError("Theta cannot exceed 90 degrees (door fully open).")
 
             # ── solve physics ───────────────────────────────────
             sym_res = compute(
